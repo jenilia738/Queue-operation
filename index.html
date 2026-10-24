@@ -1,207 +1,316 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Queue Operations</title>
+<title>Queue Playground</title>
 <style>
-:root{
-  --bg1:#eef2ff;--bg2:#fdf2f8;--bg3:#ecfeff;
-  --card:#ffffff;--text:#1d1d2b;--muted:#6b6b80;--line:#dcdcf0;
-  --blue:#3b82f6;--purple:#8b5cf6;--pink:#ec4899;--green:#10b981;--orange:#f97316;--red:#ef4444;
-  --ok-bg:#d1fae5;--ok-tx:#065f46;--err-bg:#fee2e2;--err-tx:#991b1b;--info-bg:#e0e7ff;--info-tx:#3730a3;
-  --shadow:0 6px 18px rgba(99,102,241,.15);
-  color-scheme:light;
-}
-@media (prefers-color-scheme:dark){
-  :root{
-    --bg1:#0f1226;--bg2:#1a1030;--bg3:#0b1a26;
-    --card:#1a1d36;--text:#f1f1ff;--muted:#a3a3c2;--line:#33375e;
-    --ok-bg:#064e3b;--ok-tx:#a7f3d0;--err-bg:#7f1d1d;--err-tx:#fecaca;--info-bg:#312e81;--info-tx:#c7d2fe;
-    --shadow:0 6px 18px rgba(0,0,0,.4);
-    color-scheme:dark;
-  }
-}
-*{box-sizing:border-box}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--ink:#111;--cream:#fff4d6;--yellow:#ffd23f;--pink:#ff6b9d;--cyan:#4cc9f0;--lime:#b8f35c;--orange:#ff9f45;--red:#ff6b6b}
 body{
-  margin:0;min-height:100vh;padding:16px;
-  padding-top:calc(16px + env(safe-area-inset-top,0px));
-  padding-bottom:calc(16px + env(safe-area-inset-bottom,0px));
-  color:var(--text);
-  font-family:-apple-system,system-ui,"Segoe UI",Roboto,sans-serif;
-  background:linear-gradient(160deg,var(--bg1),var(--bg2) 55%,var(--bg3)) fixed;
+  min-height:100vh;color:var(--ink);
+  font-family:"Trebuchet MS",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  background-color:var(--cream);
+  background-image:radial-gradient(rgba(0,0,0,.16) 1.5px,transparent 1.5px);background-size:18px 18px;
+  padding:calc(20px + env(safe-area-inset-top,0px)) 16px calc(36px + env(safe-area-inset-bottom,0px));
 }
 .wrap{max-width:480px;margin:0 auto}
-h1{font-size:26px;margin:0 0 4px;background:linear-gradient(90deg,var(--blue),var(--purple),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent}
-p.sub{color:var(--muted);font-size:14px;margin:0 0 16px}
+button{font-family:inherit;cursor:pointer;color:var(--ink)}
 
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow)}
-.card.top{border-top:4px solid var(--purple)}
-.card.ctrl{border-top:4px solid var(--green)}
+header{text-align:center;margin-bottom:18px}
+.sticker{display:inline-block;background:var(--yellow);border:3px solid var(--ink);border-radius:14px;box-shadow:5px 5px 0 var(--ink);
+  padding:10px 18px;font-size:24px;font-weight:900;letter-spacing:.03em;transform:rotate(-2deg)}
+header p{margin-top:14px;font-size:15px;font-weight:700}
 
-/* stat chips */
-.stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
-.chip{font-size:13px;font-weight:600;padding:5px 12px;border-radius:999px}
-.chip b{font-weight:800}
-.chip.f{background:#d1fae5;color:#065f46}
-.chip.r{background:#ffedd5;color:#9a3412}
-.chip.s{background:#dbeafe;color:#1e40af}
-@media (prefers-color-scheme:dark){
-  .chip.f{background:#064e3b;color:#a7f3d0}
-  .chip.r{background:#7c2d12;color:#fed7aa}
-  .chip.s{background:#1e3a8a;color:#bfdbfe}
+.switch{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.switch button{
+  background:var(--k);border:3px solid var(--ink);border-radius:14px;padding:12px 4px;font-size:14px;font-weight:900;letter-spacing:.04em;
+  box-shadow:4px 4px 0 var(--ink);transition:transform .08s,box-shadow .08s;
 }
+.switch button.on{transform:translate(4px,4px);box-shadow:0 0 0 var(--ink);outline:3px dashed var(--ink);outline-offset:3px}
 
-/* cells */
-.cells{display:flex;gap:6px;margin-top:6px}
-.cell{flex:1;text-align:center}
-.tag{height:18px;margin-bottom:4px;display:flex;justify-content:center;align-items:center}
-.pill{font-size:10px;font-weight:800;color:#fff;padding:2px 6px;border-radius:999px;letter-spacing:.03em;white-space:nowrap}
-.pill.f{background:var(--green)}
-.pill.r{background:var(--orange)}
-.pill.fr{background:linear-gradient(90deg,var(--green),var(--orange))}
-.box{
-  height:54px;border:2px dashed var(--line);border-radius:12px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:19px;font-weight:700;color:var(--text);
-  transition:background .2s,border-color .2s;
-}
-.box.on{border:2px solid transparent;color:#fff;background:linear-gradient(135deg,var(--blue),var(--purple));box-shadow:0 4px 10px rgba(139,92,246,.35)}
-.box.on.isf{background:linear-gradient(135deg,#10b981,#3b82f6)}
-.box.on.isr{background:linear-gradient(135deg,#8b5cf6,#f97316)}
-.box.on.isf.isr{background:linear-gradient(135deg,#10b981,#f97316)}
-.box.pop{animation:pop .3s ease}
-.box.leave{animation:leave .25s ease forwards}
-@keyframes pop{from{transform:scale(.5);opacity:0}to{transform:scale(1);opacity:1}}
-@keyframes leave{to{transform:translateX(-18px);opacity:0}}
-.idx{font-size:12px;color:var(--muted);margin-top:5px;font-weight:600}
+.view{display:none}.view.active{display:block}
+.card{border:3px solid var(--ink);border-radius:18px;background:#fff;box-shadow:6px 6px 0 var(--ink);margin-bottom:18px;overflow:hidden}
+.strip{padding:9px 14px;font-weight:900;letter-spacing:.05em;border-bottom:3px solid var(--ink);display:flex;justify-content:space-between;align-items:center;font-size:15px}
+.strip small{font-weight:800;font-size:12px;background:#fff;border:2px solid var(--ink);border-radius:999px;padding:2px 9px}
+.body{padding:14px}
+.hint{font-size:14px;font-weight:700;line-height:1.5;margin-bottom:10px}
+.facts{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.facts code{font-family:ui-monospace,Menlo,monospace;font-size:12px;font-weight:700;background:var(--ink);color:var(--lime);padding:5px 9px;border-radius:8px}
 
-/* message */
-.msg{min-height:40px;font-size:15px;margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--info-bg);color:var(--info-tx);font-weight:600}
-.msg.ok{background:var(--ok-bg);color:var(--ok-tx)}
-.msg.err{background:var(--err-bg);color:var(--err-tx)}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.chip{font-size:13px;font-weight:800;background:#fff;border:2.5px solid var(--ink);border-radius:999px;padding:3px 12px}
 
-/* controls */
-.row{display:flex;gap:8px}
-input{flex:1;min-width:0;font-size:16px;padding:11px;border:2px solid var(--line);border-radius:12px;background:var(--bg1);color:var(--text);outline:none}
-input:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(139,92,246,.25)}
-.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px}
+/* linear row */
+.cells{display:flex;gap:6px}
+.cell{flex:1;text-align:center;min-width:0}
+.tag{height:22px;display:flex;justify-content:center;align-items:center}
+.pt{font-size:9px;font-weight:900;border:2px solid var(--ink);border-radius:999px;padding:1px 5px;white-space:nowrap;background:#fff}
+.pt.f{background:var(--lime)}.pt.r{background:var(--orange)}.pt.fr{background:var(--yellow)}
+.box{height:56px;border:3px dashed rgba(0,0,0,.4);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900}
+.box.on{border:3px solid var(--ink);box-shadow:3px 3px 0 var(--ink)}
+.box.waste{border:3px dashed var(--ink);background:repeating-linear-gradient(45deg,#fff 0 6px,var(--red) 6px 9px);color:var(--ink)}
+.idx{font-size:12px;font-weight:800;margin-top:6px}
+.pop{animation:pop .3s cubic-bezier(.3,1.6,.5,1)}
+@keyframes pop{from{transform:scale(.4) rotate(-12deg);opacity:0}to{transform:none;opacity:1}}
+.ring{display:block;width:100%;max-width:340px;margin:0 auto}
+.ring .sl{transform-box:fill-box;transform-origin:center}
 
-button{
-  font-family:inherit;font-size:15px;font-weight:700;color:#fff;
-  padding:12px;border:0;border-radius:12px;cursor:pointer;
-  box-shadow:0 4px 10px rgba(0,0,0,.15);
-  transition:transform .1s,filter .15s;-webkit-tap-highlight-color:transparent;
-}
-button:hover{filter:brightness(1.08)}
-button:active{transform:scale(.96)}
-.b-add{background:linear-gradient(135deg,#10b981,#059669)}
-.b-del{background:linear-gradient(135deg,#fb923c,#ea580c)}
-.b-peek{background:linear-gradient(135deg,#60a5fa,#2563eb)}
-.b-disp{background:linear-gradient(135deg,#a78bfa,#7c3aed)}
-.b-clear{background:linear-gradient(135deg,#f87171,#dc2626)}
-.grid .b-clear{grid-column:1 / -1}
+.note{margin-top:12px;font-size:13px;font-weight:800;padding:9px 12px;border:2.5px solid var(--ink);border-radius:12px;background:var(--lime)}
+.note.bad{background:var(--red)}
+.msg{margin-top:12px;padding:10px 12px;border:3px solid var(--ink);border-radius:12px;font-size:14px;font-weight:800;min-height:44px;background:var(--cyan)}
+.msg.ok{background:var(--lime)}.msg.err{background:var(--red)}
+
+.row{display:flex;gap:10px}
+input{flex:1;min-width:0;font-size:16px;font-weight:800;padding:12px;border:3px solid var(--ink);border-radius:12px;background:#fff;outline:none;font-family:inherit}
+input:focus{background:var(--yellow)}
+.btn{font-size:15px;font-weight:900;padding:12px 14px;background:#fff;border:3px solid var(--ink);border-radius:12px;box-shadow:4px 4px 0 var(--ink);transition:transform .08s,box-shadow .08s}
+.btn:active{transform:translate(4px,4px);box-shadow:0 0 0 var(--ink)}
+.b-enq{background:var(--lime)}.b-deq{background:var(--pink)}.b-peek{background:var(--cyan)}.b-disp{background:var(--yellow)}.b-clr{background:#fff}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:14px}
+.wide{grid-column:1/-1}
+
+.verdict{font-size:15px;font-weight:800;line-height:1.6;background:var(--yellow)}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>Queue (FIFO)</h1>
-  <p class="sub">Array-based queue, size 5. Same logic as your C code.</p>
+  <header>
+    <div class="sticker">QUEUE PLAYGROUND</div>
+    <p>Linear vs circular. Play with one, or make them fight.</p>
+  </header>
 
-  <div class="card top">
-    <div class="stats">
-      <span class="chip f">front: <b id="f">-1</b></span>
-      <span class="chip r">rear: <b id="r">-1</b></span>
-      <span class="chip s">size: <b>5</b></span>
-    </div>
-    <div class="cells" id="cells"></div>
-    <div class="msg" id="msg">Ready. Add your first value.</div>
-  </div>
+  <nav class="switch">
+    <button data-tab="lin" style="--k:var(--pink)">LINEAR</button>
+    <button data-tab="cir" style="--k:var(--cyan)">CIRCULAR</button>
+    <button data-tab="cmp" style="--k:var(--lime)">VERSUS</button>
+  </nav>
 
-  <div class="card ctrl">
-    <div class="row">
-      <input id="val" type="number" inputmode="numeric" placeholder="Enter a value">
-      <button class="b-add" onclick="enqueue()">Enqueue</button>
+  <section class="view" id="v-lin">
+    <div class="card">
+      <div class="strip" style="background:var(--pink)">LINEAR QUEUE <small>size 5</small></div>
+      <div class="body">
+        <p class="hint">Rear only moves forward. Freed slots at the front turn into striped red zones: wasted!</p>
+        <div class="facts"><code>rear++</code><code>full: rear == SIZE-1</code></div>
+        <div class="stats" id="lin-stats"></div>
+        <div class="cells" id="lin-vis"></div>
+        <div class="note" id="lin-note"></div>
+        <div class="msg" id="lin-msg">Ready. Add your first value.</div>
+      </div>
     </div>
-    <div class="grid">
-      <button class="b-del" onclick="dequeue()">Dequeue</button>
-      <button class="b-peek" onclick="peek()">Peek</button>
-      <button class="b-disp" onclick="display()">Display</button>
-      <button class="b-clear" onclick="resetQ()">Clear</button>
+    <div class="card"><div class="strip" style="background:var(--yellow)">CONTROLS</div><div class="body ctrl" data-k="lin"></div></div>
+  </section>
+
+  <section class="view" id="v-cir">
+    <div class="card">
+      <div class="strip" style="background:var(--cyan)">CIRCULAR QUEUE <small>size 5</small></div>
+      <div class="body">
+        <p class="hint">Rear wraps from the last slot back to 0, so freed slots get reused.</p>
+        <div class="facts"><code>rear = (rear+1) % SIZE</code><code>full: (rear+1) % SIZE == front</code></div>
+        <div class="stats" id="cir-stats"></div>
+        <div id="cir-vis"></div>
+        <div class="note" id="cir-note"></div>
+        <div class="msg" id="cir-msg">Ready. Add your first value.</div>
+      </div>
     </div>
-  </div>
+    <div class="card"><div class="strip" style="background:var(--yellow)">CONTROLS</div><div class="body ctrl" data-k="cir"></div></div>
+  </section>
+
+  <section class="view" id="v-cmp">
+    <div class="card">
+      <div class="strip" style="background:var(--lime)">ONE INPUT, TWO QUEUES</div>
+      <div class="body">
+        <div class="row">
+          <input id="cmp-val" type="number" inputmode="numeric" placeholder="Value for both">
+          <button class="btn b-enq" id="cmp-enq">Enqueue</button>
+        </div>
+        <div class="grid">
+          <button class="btn b-deq" id="cmp-deq">Dequeue</button>
+          <button class="btn b-clr" id="cmp-clr">Clear both</button>
+          <button class="btn b-disp wide" id="cmp-demo">Run demo: enqueue 5, dequeue 2, enqueue 1</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="strip" style="background:var(--pink)">LINEAR <small>wastes space</small></div>
+      <div class="body"><div class="cells" id="cmp-lin-vis"></div><div class="msg" id="cmp-lin-msg">Ready.</div></div>
+    </div>
+
+    <div class="card">
+      <div class="strip" style="background:var(--cyan)">CIRCULAR <small>reuses space</small></div>
+      <div class="body"><div id="cmp-cir-vis"></div><div class="msg" id="cmp-cir-msg">Ready.</div></div>
+    </div>
+
+    <div class="card"><div class="body verdict" id="cmp-verdict"></div></div>
+  </section>
 </div>
 
 <script>
 const SIZE = 5;
-let queue = new Array(SIZE).fill(null);
-let front = -1, rear = -1, busy = false;
+const PAL = ['#ffd23f', '#ff6b9d', '#4cc9f0', '#b8f35c', '#ff9f45'];
 const $ = id => document.getElementById(id);
+const ok = m => ({t: 'ok', m}), err = m => ({t: 'err', m}), info = m => ({t: '', m});
 
-function say(t, cls){ const m=$('msg'); m.textContent=t; m.className='msg '+(cls||''); }
-function isEmpty(){ return front === rear; }
+function makeLinear(){
+  return {
+    f: -1, r: -1, q: new Array(SIZE).fill(null), pop: -1,
+    items(){ const a = []; for (let i = this.f + 1; i <= this.r; i++) a.push(i); return a; },
+    head(){ return this.f + 1; }, tail(){ return this.r; },
+    wasted(){ return this.f >= 0 ? this.f + 1 : 0; },
+    empty(){ return this.f === this.r; },
+    enq(v){
+      if (this.r === SIZE - 1) return err(this.f >= 0 ? `Overflow! Slots 0 to ${this.f} are empty but wasted.` : 'Overflow! Queue is full.');
+      this.q[++this.r] = v; this.pop = this.r; return ok('Inserted ' + v);
+    },
+    deq(){
+      if (this.empty()) return err('Underflow! Queue is empty.');
+      const e = this.q[++this.f];
+      if (this.f === this.r) { this.f = -1; this.r = -1; }
+      return ok('Removed ' + e);
+    },
+    peek(){ return this.empty() ? err('Queue is empty!') : info('Front element: ' + this.q[this.f + 1]); },
+    disp(){ return this.empty() ? err('Queue is empty') : info('Elements: ' + this.items().map(i => this.q[i]).join(' ')); },
+    clr(){ this.q.fill(null); this.f = this.r = -1; return info('Queue cleared.'); }
+  };
+}
 
-function render(popIndex = -1){
-  $('f').textContent = front; $('r').textContent = rear;
+function makeCircular(){
+  return {
+    f: -1, r: -1, q: new Array(SIZE).fill(null), pop: -1,
+    items(){ const a = []; if (this.f === -1) return a; let i = this.f; for (;;) { a.push(i); if (i === this.r) break; i = (i + 1) % SIZE; } return a; },
+    head(){ return this.f; }, tail(){ return this.r; },
+    wasted(){ return 0; },
+    empty(){ return this.f === -1; },
+    full(){ return this.f !== -1 && (this.r + 1) % SIZE === this.f; },
+    enq(v){
+      if (this.full()) return err('Overflow! (rear+1) % SIZE == front');
+      if (this.f === -1) this.f = 0;
+      this.r = (this.r + 1) % SIZE; this.q[this.r] = v; this.pop = this.r;
+      return ok(`Inserted ${v} at index ${this.r}`);
+    },
+    deq(){
+      if (this.empty()) return err('Underflow! Queue is empty.');
+      const e = this.q[this.f];
+      if (this.f === this.r) { this.f = -1; this.r = -1; } else this.f = (this.f + 1) % SIZE;
+      return ok('Removed ' + e);
+    },
+    peek(){ return this.empty() ? err('Queue is empty!') : info('Front element: ' + this.q[this.f]); },
+    disp(){ return this.empty() ? err('Queue is empty') : info('Elements: ' + this.items().map(i => this.q[i]).join(' ')); },
+    clr(){ this.q.fill(null); this.f = this.r = -1; return info('Queue cleared.'); }
+  };
+}
+
+const Q = {lin: makeLinear(), cir: makeCircular()};
+
+function tagOf(isH, isT){
+  if (isH && isT) return ['FRONT+REAR', 'fr', '#ffd23f'];
+  if (isH) return ['FRONT', 'f', '#b8f35c'];
+  if (isT) return ['REAR', 'r', '#ff9f45'];
+  return ['', '', '#fff'];
+}
+
+function rowHTML(s){
+  const used = s.items();
   let h = '';
-  for(let i=0;i<SIZE;i++){
-    const on = i>front && i<=rear;
-    const isF = on && i===front+1, isR = on && i===rear;
-    let tag = '';
-    if(isF && isR) tag = '<span class="pill fr">FRONT / REAR</span>';
-    else if(isF) tag = '<span class="pill f">FRONT</span>';
-    else if(isR) tag = '<span class="pill r">REAR</span>';
-    let cls = 'box';
-    if(on) cls += ' on';
-    if(isF) cls += ' isf';
-    if(isR) cls += ' isr';
-    if(i===popIndex) cls += ' pop';
-    h += `<div class="cell"><div class="tag">${tag}</div><div class="${cls}" data-i="${i}">${on?queue[i]:''}</div><div class="idx">${i}</div></div>`;
+  for (let i = 0; i < SIZE; i++){
+    const on = used.includes(i), waste = s.f >= 0 && i <= s.f;
+    const [txt, tc] = tagOf(on && i === s.head(), on && i === s.tail());
+    const cls = 'box' + (on ? ' on' : '') + (waste ? ' waste' : '') + (i === s.pop ? ' pop' : '');
+    const st = on ? ` style="background:${PAL[i]}"` : '';
+    h += `<div class="cell"><div class="tag">${txt ? `<span class="pt ${tc}">${txt}</span>` : ''}</div><div class="${cls}"${st}>${on ? s.q[i] : (waste ? '×' : '')}</div><div class="idx">${i}</div></div>`;
   }
-  $('cells').innerHTML = h;
+  return h;
 }
 
-function enqueue(){
-  if(busy) return;
-  if(rear === SIZE-1){ say('Queue Overflow!', 'err'); return; }
-  const v = $('val').value;
-  if(v === ''){ say('Enter a value first.', 'err'); return; }
-  queue[++rear] = parseInt(v, 10);
-  $('val').value = '';
-  say('Inserted ' + queue[rear], 'ok');
-  render(rear);
+function ringHTML(s){
+  const used = s.items(), cx = 200, cy = 200, R = 100;
+  let g = `<svg class="ring" viewBox="0 0 400 400"><circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="#111" stroke-width="3" stroke-dasharray="3 9" stroke-linecap="round"/>`;
+  for (let i = 0; i < SIZE; i++){
+    const a = (i * 360 / SIZE - 90) * Math.PI / 180, cs = Math.cos(a), sn = Math.sin(a);
+    const x = cx + R * cs, y = cy + R * sn;
+    const on = used.includes(i), isH = on && i === s.head(), isT = on && i === s.tail();
+    const [txt, , col] = tagOf(isH, isT);
+    g += `<g class="sl${i === s.pop ? ' pop' : ''}">`;
+    if (on) g += `<rect x="${x - 23}" y="${y - 23}" width="52" height="52" rx="12" fill="#111"/>`;
+    g += `<rect x="${x - 26}" y="${y - 26}" width="52" height="52" rx="12" fill="${on ? PAL[i] : '#fff'}" stroke="#111" stroke-width="3"${on ? '' : ' stroke-dasharray="5 5" opacity=".55"'}/>`;
+    if (on) g += `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" fill="#111" font-size="20" font-weight="900">${s.q[i]}</text>`;
+    g += `</g><text x="${cx + 56 * cs}" y="${cy + 56 * sn}" text-anchor="middle" dominant-baseline="central" fill="#111" font-size="12" font-weight="800">${i}</text>`;
+    if (txt){
+      const tx = cx + 160 * cs, ty = cy + 160 * sn, w = txt.length * 7.4 + 14;
+      g += `<rect x="${tx - w / 2}" y="${ty - 10}" width="${w}" height="20" rx="10" fill="${col}" stroke="#111" stroke-width="2.5"/><text x="${tx}" y="${ty}" text-anchor="middle" dominant-baseline="central" fill="#111" font-size="10" font-weight="900">${txt}</text>`;
+    }
+  }
+  g += `<text x="${cx}" y="${cy - 2}" text-anchor="middle" fill="#111" font-size="30" font-weight="900">${used.length}/${SIZE}</text><text x="${cx}" y="${cy + 20}" text-anchor="middle" fill="#111" font-size="12" font-weight="800">items</text></svg>`;
+  return g;
 }
 
-function dequeue(){
-  if(busy) return;
-  if(isEmpty()){ say('Queue Underflow!', 'err'); return; }
-  busy = true;
-  const box = document.querySelector('.box[data-i="'+(front+1)+'"]');
-  if(box) box.classList.add('leave');
-  setTimeout(() => {
-    const el = queue[++front];
-    if(front === rear){ front = -1; rear = -1; }
-    say('Removed ' + el, 'ok');
-    render();
-    busy = false;
-  }, 250);
+function setHTML(ids, html){ ids.forEach(id => { const el = $(id); if (el) el.innerHTML = html; }); }
+function chips(id, arr){ $(id).innerHTML = arr.map(([a, b]) => `<span class="chip">${a}: ${b}</span>`).join(''); }
+
+function paint(){
+  const L = Q.lin, C = Q.cir, w = L.wasted(), free = SIZE - C.items().length;
+  setHTML(['lin-vis', 'cmp-lin-vis'], rowHTML(L));
+  setHTML(['cir-vis', 'cmp-cir-vis'], ringHTML(C));
+  chips('lin-stats', [['front', L.f], ['rear', L.r], ['wasted', w]]);
+  chips('cir-stats', [['front', C.f], ['rear', C.r], ['items', C.items().length + '/' + SIZE]]);
+  const ln = $('lin-note'), cn = $('cir-note');
+  ln.className = 'note' + (w ? ' bad' : '');
+  ln.textContent = w ? `${w} slot(s) wasted. They can’t be reused until the queue is empty.` : 'No wasted slots yet.';
+  cn.className = 'note';
+  cn.textContent = C.full() ? 'Full: (rear+1) % SIZE == front.' : `Free slots: ${free}. Rear can wrap around to reuse them.`;
+  $('cmp-verdict').innerHTML = `LINEAR: ${w} wasted slot(s).<br>CIRCULAR: ${free} free slot(s), all reusable.`;
+  L.pop = -1; C.pop = -1;
 }
 
-function peek(){
-  if(isEmpty()){ say('Queue is empty!', 'err'); return; }
-  say('Front element: ' + queue[front+1]);
+function msg(k, res){
+  [k + '-msg', 'cmp-' + k + '-msg'].forEach(id => { const el = $(id); if (el) { el.textContent = res.m; el.className = 'msg ' + res.t; } });
 }
 
-function display(){
-  if(isEmpty()){ say('Queue is empty', 'err'); return; }
-  say('Queue elements: ' + queue.slice(front+1, rear+1).join(' '));
+function doAction(k, a){
+  let res;
+  if (a === 'enq'){
+    const el = $(k + '-val');
+    if (el.value === '') { msg(k, err('Enter a value first.')); return; }
+    const v = parseInt(el.value, 10); el.value = ''; res = Q[k].enq(v);
+  } else res = Q[k][a]();
+  msg(k, res); paint();
 }
 
-function resetQ(){ if(busy) return; queue.fill(null); front = rear = -1; say('Queue cleared.'); render(); }
+document.querySelectorAll('.ctrl').forEach(el => {
+  const k = el.dataset.k;
+  el.innerHTML = `<div class="row"><input id="${k}-val" type="number" inputmode="numeric" placeholder="Enter a value"><button class="btn b-enq" data-k="${k}" data-a="enq">Enqueue</button></div>
+  <div class="grid"><button class="btn b-deq" data-k="${k}" data-a="deq">Dequeue</button><button class="btn b-peek" data-k="${k}" data-a="peek">Peek</button><button class="btn b-disp" data-k="${k}" data-a="disp">Display</button><button class="btn b-clr" data-k="${k}" data-a="clr">Clear</button></div>`;
+  $(k + '-val').addEventListener('keydown', e => { if (e.key === 'Enter') doAction(k, 'enq'); });
+});
+document.addEventListener('click', e => { const b = e.target.closest('[data-a]'); if (b) doAction(b.dataset.k, b.dataset.a); });
 
-$('val').addEventListener('keydown', e => { if(e.key==='Enter') enqueue(); });
-render();
+$('cmp-enq').onclick = () => {
+  const el = $('cmp-val');
+  if (el.value === '') { msg('lin', err('Enter a value first.')); msg('cir', err('Enter a value first.')); return; }
+  const v = parseInt(el.value, 10); el.value = '';
+  msg('lin', Q.lin.enq(v)); msg('cir', Q.cir.enq(v)); paint();
+};
+$('cmp-deq').onclick = () => { msg('lin', Q.lin.deq()); msg('cir', Q.cir.deq()); paint(); };
+$('cmp-clr').onclick = () => { msg('lin', Q.lin.clr()); msg('cir', Q.cir.clr()); paint(); };
+$('cmp-demo').onclick = () => {
+  Q.lin.clr(); Q.cir.clr();
+  [10, 20, 30, 40, 50].forEach(v => { Q.lin.enq(v); Q.cir.enq(v); });
+  Q.lin.deq(); Q.cir.deq(); Q.lin.deq(); Q.cir.deq();
+  msg('lin', Q.lin.enq(60)); msg('cir', Q.cir.enq(60)); paint();
+};
+$('cmp-val').addEventListener('keydown', e => { if (e.key === 'Enter') $('cmp-enq').click(); });
+
+function route(){
+  const h = location.hash.slice(1), t = ['lin', 'cir', 'cmp'].includes(h) ? h : 'lin';
+  document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'v-' + t));
+  document.querySelectorAll('.switch button').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
+}
+document.querySelectorAll('.switch button').forEach(b => b.onclick = () => { location.hash = b.dataset.tab; });
+window.addEventListener('hashchange', route);
+
+paint();
+route();
 </script>
 </body>
 </html>
